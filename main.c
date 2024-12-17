@@ -4,14 +4,17 @@
 #include <stdbool.h>
 #include <time.h>
 #include <math.h>
+
 #define WIDTH 160
 #define HEIGHT 40
+
 typedef struct {
     int x, y;
     char TankView[16][4];
     short int direction;
     bool active;
 } Tank;
+
 typedef struct {
     int x, y;
     char BlockView[4][4];
@@ -19,6 +22,7 @@ typedef struct {
     bool IsBreakable;
     bool active;
 } Block;
+
 typedef struct {
     int x, y;
     char bulletTop[2];
@@ -27,6 +31,7 @@ typedef struct {
     HANDLE thread;
     bool active;
 } Bullet;
+
 typedef struct {
     int x, y;
     short int direction;
@@ -34,6 +39,7 @@ typedef struct {
     HANDLE thread;
     char enemyView[16][4];
 } Enemy;
+
 typedef struct {
     int Height;
     int Width;
@@ -45,6 +51,7 @@ typedef struct {
     int BlockCount;
     Block *Blocks;
 } Map;
+
 // Функция проверки столкновения с врагом
 void CheckCollision(Map *map) {
     Tank *tank = map->Tank;
@@ -55,10 +62,12 @@ void CheckCollision(Map *map) {
             int tankRight = tank->x + 4; // ширина танка
             int tankTop = tank->y;
             int tankBottom = tank->y + 4; // высота танка
+
             int enemyLeft = enemy.x;
             int enemyRight = enemy.x + 4; // ширина врага
             int enemyTop = enemy.y;
             int enemyBottom = enemy.y + 4; // высота врага
+
             tank->active = (tankRight <= enemyLeft ||
                             tankLeft >= enemyRight ||
                             tankBottom <= enemyTop ||
@@ -66,14 +75,17 @@ void CheckCollision(Map *map) {
         }
     }
 }
+
 // Функция проверки колизии блока
 bool CheckBlockCollision(Map *map, int x, int y) {
     for (int i = 0; i < map->BlockCount; i++) {
         Block block = map->Blocks[i];
+
         int tankLeft = x;
         int tankRight = x + 4; // ширина танка
         int tankTop = y;
         int tankBottom = y + 4; // высота танка
+
         int blockLeft = block.x;
         int blockRight = block.x + 4; // ширина врага
         int blockTop = block.y;
@@ -86,6 +98,7 @@ bool CheckBlockCollision(Map *map, int x, int y) {
     }
     return false;
 }
+
 // Функция инициализация врага
 Enemy InitEnemy(int x, int y, Map *map) {
     Enemy enemy = {
@@ -98,24 +111,32 @@ Enemy InitEnemy(int x, int y, Map *map) {
                     {'{', '|', '|', '}'},
                     {'|', '[', ']', '|'},
                     {'{', '_', '_', '}'},
+
+
                     {' ', '/', '=', '\\'}, //2
                     {'-', '-', '=', '|'},
                     {'-', '-', '=', '|'},
                     {' ', '\\', '=', '/'},
+
+
                     {'/', '=', '\\', ' '}, //3
                     {'|', '=', '-', '-'},
                     {'|', '=', '-', '-'},
                     {'\\', '=', '/', ' '},
+
+
                     {'{', '_', '_', '}'}, //4
                     {'|', '[', ']', '|'},
                     {'{', '|', '|', '}'},
                     {' ', '|', '|', ' '}
             }
+
     };
     map->Enemies = realloc(map->Enemies, sizeof(Enemy) * (++map->EnemyCount));
     map->Enemies[map->EnemyCount - 1] = enemy;
     return enemy;
 }
+
 // Функция инициализации карты
 Map InitMap(int width, int height) {
     Map map = {
@@ -127,6 +148,7 @@ Map InitMap(int width, int height) {
     };
     return map;
 }
+
 //Фунция инициализации блока
 Block InitBlock(int x, int y, Map *map) {
     Block block = {
@@ -141,6 +163,7 @@ Block InitBlock(int x, int y, Map *map) {
     map->Blocks[map->BlockCount - 1] = block;
     return block;
 }
+
 // Функция инициализации танка
 Tank InitTank(int x, int y) {
     Tank tank = {
@@ -150,14 +173,20 @@ Tank InitTank(int x, int y) {
                     {'{', '|', '|', '}'},
                     {'|', '[', ']', '|'},
                     {'{', '_', '_', '}'},
+
+
                     {' ', '/', '=', '\\'},
                     {'-', '-', '=', '|'},
                     {'-', '-', '=', '|'},
                     {' ', '\\', '=', '/'},
+
+
                     {'/', '=', '\\', ' '},
                     {'|', '=', '-', '-'},
                     {'|', '=', '-', '-'},
                     {'\\', '=', '/', ' '},
+
+
                     {'{', '_', '_', '}'},
                     {'|', '[', ']', '|'},
                     {'{', '|', '|', '}'},
@@ -168,6 +197,7 @@ Tank InitTank(int x, int y) {
     };
     return tank;
 }
+
 // Функция инициализации пули танка
 Bullet InitBullet(int x, int y, int direction, Map *map) {
     if (direction == 1) y -= 2;
@@ -182,10 +212,13 @@ Bullet InitBullet(int x, int y, int direction, Map *map) {
             NULL,
             1
     };
+
+
     map->Bullets = realloc(map->Bullets, sizeof(Bullet) * (++map->BulletCount));
     map->Bullets[map->BulletCount - 1] = bullet;
     return bullet;
 }
+
 // Функция отрисовки танка
 void draw_tank(Map *map) {
     Tank *tank = map->Tank;
@@ -196,6 +229,7 @@ void draw_tank(Map *map) {
         }
     }
 }
+
 // Функция отрисовки врага
 void draw_enemy(Map *map, int i) {
     Enemy enemy = map->Enemies[i];
@@ -206,6 +240,7 @@ void draw_enemy(Map *map, int i) {
         }
     }
 }
+
 //Функция отрисовки блока
 void draw_block(Map *map) {
     for (int i = 0; i < map->BlockCount; i++) {
@@ -218,11 +253,14 @@ void draw_block(Map *map) {
         }
     }
 }
+
 // Поток для обработки движения пули
 DWORD WINAPI shoot(LPVOID param) {
     Map *map = (Map *) param;
     Bullet bullet = map->Bullets[map->BulletCount - 1];
-    while (bullet.active) {
+
+
+    while (bullet.active && map->Tank->active) {
         if (map->Tank->active &&
             bullet.x >= map->Tank->x && bullet.x < map->Tank->x + 4 &&
             bullet.y >= map->Tank->y && bullet.y < map->Tank->y + 4) {
@@ -252,6 +290,7 @@ DWORD WINAPI shoot(LPVOID param) {
         if (bullet.direction == 2) bullet.x--;
         if (bullet.direction == 3) bullet.x++;
         if (bullet.direction == 4) bullet.y++;
+
         if (bullet.x < 0 || bullet.x >= WIDTH || bullet.y < 0 || bullet.y >= HEIGHT) {
             bullet.active = 0;
             map->Bullets = realloc(map->Bullets, sizeof(Bullet) * (--map->BulletCount));
@@ -271,22 +310,28 @@ DWORD WINAPI shoot(LPVOID param) {
     }
     return 0;
 }
+
 // Очистка экрана
 void clear_screen() {
     system("cls");
 }
+
 // Функция для движение врага
 void MoveEnemyTowardsTank(Map *map, int i) {
     Enemy *enemy = &map->Enemies[i];
     int dx = map->Tank->x - enemy->x;
     int dy = map->Tank->y - enemy->y;
+
     if (dx == 0 && dy == 0)
         return;
+
     bool moveAlongX = abs(dx) > abs(dy);
+
     if (moveAlongX)
         if (CheckBlockCollision(map, enemy->x + 1, enemy->y) || CheckBlockCollision(map, enemy->x - 1, enemy->y)) {
             enemy->y++;
             enemy->direction = 4;
+
         } else if (dx > 0 && !CheckBlockCollision(map, enemy->x + 1, enemy->y)) {
             enemy->x++;
             enemy->direction = 3;
@@ -295,10 +340,12 @@ void MoveEnemyTowardsTank(Map *map, int i) {
             enemy->direction = 2;
         } else
             moveAlongX = false;
+
     if (!moveAlongX)
         if (CheckBlockCollision(map, enemy->x, enemy->y + 1) || CheckBlockCollision(map, enemy->x, enemy->y - 1)) {
             enemy->x++;
             enemy->direction = 3;
+
         } else if (dy > 0 && !CheckBlockCollision(map, enemy->x, enemy->y + 1)) {
             enemy->y++;
             enemy->direction = 4;
@@ -308,47 +355,61 @@ void MoveEnemyTowardsTank(Map *map, int i) {
         } else
             moveAlongX = true;
 }
+
 //Функция стрельбы врага
 void EnemyShoot(Map *map, int i) {
     Enemy *enemy = &map->Enemies[i];
     Bullet bullet = InitBullet(enemy->x + 1, enemy->y + 1, enemy->direction, map);
     bullet.thread = CreateThread(NULL, 0, shoot, map, 0, NULL);
 }
+
 //Функция для обработки врага
 DWORD WINAPI EnemyRules(LPVOID param) {
     Map *map = (Map *) param;
-    while (map->Tank->active) {
+    bool IsEnemyAlive = 1;
+    while (IsEnemyAlive != 0 && map->Tank->active) {
+        IsEnemyAlive = 0;
         for (int i = 0; i < map->EnemyCount; i++) {
             if (map->Enemies[i].active) {
-                Sleep(400);
+                Sleep(400 / map->EnemyCount + 1);
                 CheckCollision(map);
                 MoveEnemyTowardsTank(map, i);
+
                 time_t ptr = time(NULL);
+
                 if ((map->Tank->y == map->Enemies[i].y || map->Tank->x == map->Enemies[i].x) && ptr % 5 == 0) {
                     EnemyShoot(map, i);
                 }
+                IsEnemyAlive = 1;
             }
         }
     }
     return 0;
 }
+
 //Процедура генерации карты
 Map MapGenerator(Map *Maps, short int BlockCount, short int EnemyCount, int seed) {
     Map map = *Maps;
     srand(seed);
+
     map.Tank = malloc(sizeof(Tank));
     *map.Tank = InitTank(1, 1);
+
+
     int maxAttempts = BlockCount * 10;
     for (int i = 0; i < BlockCount && maxAttempts > 0; maxAttempts--) {
         int blockLeft = rand() % (WIDTH - 4);
         int blockTop = rand() % (HEIGHT - 4);
+
         bool canPlace = true;
+
         if (!(blockLeft + 4 <= map.Tank->x ||
               blockLeft >= map.Tank->x + 4 ||
               blockTop + 4 <= map.Tank->y ||
               blockTop >= map.Tank->y + 4)) {
             canPlace = false;
         }
+
         for (int j = 0; j < map.BlockCount && canPlace; j++) {
             if (!(blockLeft + 4 <= map.Blocks[j].x ||
                   blockLeft >= map.Blocks[j].x + 4 ||
@@ -358,22 +419,30 @@ Map MapGenerator(Map *Maps, short int BlockCount, short int EnemyCount, int seed
                 break;
             }
         }
+
         if (canPlace) {
             InitBlock(blockLeft, blockTop, &map);
             i++;
         }
     }
+
+
     maxAttempts = EnemyCount * 10;
     for (int i = 0; i < EnemyCount && maxAttempts > 0; maxAttempts--) {
         int enemyLeft = rand() % (WIDTH - 4);
         int enemyTop = rand() % (HEIGHT - 4);
+
         bool canPlace = true;
+
+
         if (!(enemyLeft + 4 <= map.Tank->x ||
               enemyLeft >= map.Tank->x + 4 ||
               enemyTop + 4 <= map.Tank->y ||
               enemyTop >= map.Tank->y + 4)) {
             canPlace = false;
         }
+
+
         for (int j = 0; j < map.BlockCount && canPlace; j++) {
             if (!(enemyLeft + 4 <= map.Blocks[j].x ||
                   enemyLeft >= map.Blocks[j].x + 4 ||
@@ -383,6 +452,8 @@ Map MapGenerator(Map *Maps, short int BlockCount, short int EnemyCount, int seed
                 break;
             }
         }
+
+
         for (int j = 0; j < map.EnemyCount && canPlace; j++) {
             if (!(enemyLeft + 4 <= map.Enemies[j].x ||
                   enemyLeft >= map.Enemies[j].x + 4 ||
@@ -392,41 +463,52 @@ Map MapGenerator(Map *Maps, short int BlockCount, short int EnemyCount, int seed
                 break;
             }
         }
+
         if (canPlace) {
             InitEnemy(enemyLeft, enemyTop, &map);
             i++;
         }
     }
+
     return map;
 }
+
 // Основная функция
 int main() {
     printf("Введите кол-во блоков на карте:\n");
     short int BlockCount;
-    scanf_s("%hd",&BlockCount);
+    scanf_s("%hd", &BlockCount);
+
     clear_screen();
-    printf("Кол-во блоков = %hd",BlockCount);
+    printf("Кол-во блоков = %hd", BlockCount);
     printf("\nВведите кол-во врагов на карте:\n");
     short int EnemyCount;
-    scanf_s("%hd",&EnemyCount);
+    scanf_s("%hd", &EnemyCount);
+
     clear_screen();
-    printf("Кол-во блоков = %hd",BlockCount);
-    printf("\nКол-во блоков = %hd",EnemyCount);
+    printf("Кол-во блоков = %hd", BlockCount);
+    printf("\nКол-во блоков = %hd", EnemyCount);
     printf("\nВведите сид генерации:\n");
     int seed;
-    scanf_s("%d",&seed);
+    scanf_s("%d", &seed);
+
     clear_screen();
-    printf("Кол-во блоков = %hd",BlockCount);
-    printf("\nКол-во врагов = %hd",EnemyCount);
-    printf("\nСид генерации = %d",seed);
-    if (seed==0) {
+    printf("Кол-во блоков = %hd", BlockCount);
+    printf("\nКол-во врагов = %hd", EnemyCount);
+    printf("\nСид генерации = %d", seed);
+
+
+    if (seed == 0) {
         srand(time(NULL));
-        seed=rand();
+        seed = rand();
     }
+
     //Генерация карты,Создание ядра для врагов
     Map map = InitMap(WIDTH, HEIGHT);
     map = (MapGenerator(&map, BlockCount, EnemyCount, seed));
     HANDLE enemyThread = CreateThread(NULL, 0, EnemyRules, &map, 0, NULL);
+
+
     printf("\033[?25l");
     while (map.Tank->active) {
         clear_screen();
@@ -437,6 +519,7 @@ int main() {
                 draw_enemy(&map, i);
             }
         }
+
         // Обработка клавиш движения
         if (GetAsyncKeyState('W') & 0x8000 && map.Tank->y > 0) {
             map.Tank->y--;
@@ -470,6 +553,7 @@ int main() {
             CheckCollision(&map);
             map.Tank->direction = 3;
         }
+
         // Обработка выстрела
         if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
             Bullet bullet = InitBullet(map.Tank->x + 1, map.Tank->y + 1, map.Tank->direction, &map);
@@ -477,6 +561,20 @@ int main() {
         }
         Sleep(100);
     }
+    printf("Ожидание завершения потока врагов...\n");
+    WaitForSingleObject(enemyThread, INFINITE);
+
+    printf("Поток завершён. Основная программа продолжает работу.\n");
+
+    CloseHandle(enemyThread);
+    clear_screen();
+    printf("Ожидание завершения потока пуль...\n");
+    WaitForSingleObject(map.Bullets->thread, INFINITE);
+
+    printf("Поток завершён. Основная программа продолжает работу.\n");
+
+    CloseHandle(map.Bullets->thread);
+
     free(map.Tank);
     free(map.Bullets);
     free(map.Enemies);
